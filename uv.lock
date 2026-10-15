@@ -444,7 +444,7 @@ wheels = [
 ]
 
 [[package]]
-name = "dry-bean-variety-classification-using-multiclass-logistic-regression"
+name = "dry-bean-logistic-regression"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
