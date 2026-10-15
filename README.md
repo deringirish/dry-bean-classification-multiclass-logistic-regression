@@ -140,8 +140,8 @@ Dry Bean Variety Classification Using Multiclass Logistic Regression/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/your-username/dry-bean-variety-classification.git
-   cd "Dry Bean Variety Classification Using Multiclass Logistic Regression"
+   git clone https://github.com/deringirish/dry-bean-logistic-regression.git
+   cd dry-bean-logistic-regression
    ```
 
 2. **Sync dependencies with uv:**
