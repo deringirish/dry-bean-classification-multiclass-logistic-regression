@@ -145,8 +145,8 @@ dry-bean-logistic-regression/
 
 1. **Clone the repository:**
    ```bash
-   git clone https://github.com/deringirish/dry-bean-logistic-regression.git
-   cd dry-bean-logistic-regression
+   git clone https://github.com/deringirish/dry-bean-classification-multiclass-logistic-regression.git
+   cd dry-bean-classification-multiclass-logistic-regression
    ```
 
 2. **Sync dependencies:**
