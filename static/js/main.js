@@ -17,7 +17,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const meterFill = document.getElementById('meter-fill');
   const probList = document.getElementById('prob-list');
 
-  const presetButtons = document.querySelectorAll('.preset-btn');
+  const presetButtons = document.querySelectorAll('.preset-pill, .preset-btn');
 
   // Handle Preset Click
   presetButtons.forEach((btn) => {
@@ -26,7 +26,10 @@ document.addEventListener('DOMContentLoaded', () => {
       const presets = window.PRESETS_DATA || {};
       const preset = presets[presetKey];
 
-      if (!preset || !preset.features) return;
+      if (!preset || !preset.features) {
+        console.warn('Preset not found for key:', presetKey);
+        return;
+      }
 
       // Fill in all input fields
       Object.entries(preset.features).forEach(([field, val]) => {
@@ -36,12 +39,18 @@ document.addEventListener('DOMContentLoaded', () => {
         }
       });
 
-      // Highlight active button briefly
-      presetButtons.forEach(b => b.style.borderColor = '#e2e8f0');
-      btn.style.borderColor = '#059669';
+      // Highlight active pill button
+      presetButtons.forEach(b => {
+        b.style.borderColor = 'var(--border, #e2e8f0)';
+        b.style.background = 'var(--bg-page, #f8fafc)';
+        b.style.color = 'var(--text-secondary, #475569)';
+      });
+      btn.style.borderColor = 'var(--primary-dark, #059669)';
+      btn.style.background = 'var(--primary-subtle, #f0fdf4)';
+      btn.style.color = 'var(--primary-dark, #059669)';
 
-      // Auto-submit after loading preset
-      form.dispatchEvent(new Event('submit'));
+      // Trigger form submission
+      form.dispatchEvent(new Event('submit', { cancelable: true }));
     });
   });
 
@@ -51,7 +60,11 @@ document.addEventListener('DOMContentLoaded', () => {
     emptyState.classList.remove('hidden');
     predictionContent.classList.add('hidden');
     errorAlert.classList.add('hidden');
-    presetButtons.forEach(b => b.style.borderColor = '#e2e8f0');
+    presetButtons.forEach(b => {
+      b.style.borderColor = 'var(--border, #e2e8f0)';
+      b.style.background = 'var(--bg-page, #f8fafc)';
+      b.style.color = 'var(--text-secondary, #475569)';
+    });
   });
 
   // Handle Form Submission via Fetch
@@ -96,25 +109,36 @@ document.addEventListener('DOMContentLoaded', () => {
   });
 
   function renderResults(data) {
-    emptyState.classList.add('hidden');
-    predictionContent.classList.remove('hidden');
+    if (emptyState) emptyState.classList.add('hidden');
+    if (predictionContent) predictionContent.classList.remove('hidden');
 
     // Winner details
-    predictedClass.textContent = data.prediction;
-    predictedClass.style.color = data.badge_color || '#059669';
-    resultBadge.textContent = `Cultivar: ${data.display_name}`;
-    resultBadge.style.background = '#ecfdf5';
-    resultBadge.style.color = data.badge_color || '#059669';
-    cultivarDescription.textContent = data.description || '';
+    if (predictedClass) {
+      predictedClass.textContent = data.prediction;
+      predictedClass.style.color = data.badge_color || '#059669';
+    }
+    if (resultBadge) {
+      resultBadge.textContent = `Cultivar: ${data.display_name || data.prediction}`;
+      resultBadge.style.background = '#ecfdf5';
+      resultBadge.style.color = data.badge_color || '#059669';
+    }
+    if (cultivarDescription) {
+      cultivarDescription.textContent = data.description || '';
+    }
 
     // Confidence
     const conf = parseFloat(data.confidence) || 0;
-    confidenceVal.textContent = `${conf.toFixed(1)}%`;
-    meterFill.style.width = `${Math.min(conf, 100)}%`;
+    if (confidenceVal) {
+      confidenceVal.textContent = `${conf.toFixed(1)}%`;
+    }
+    if (meterFill) {
+      meterFill.style.width = `${Math.min(conf, 100)}%`;
+    }
 
     // Multiclass Probabilities
-    probList.innerHTML = '';
-    const probs = data.probabilities || {};
+    if (probList) {
+      probList.innerHTML = '';
+      const probs = data.probabilities || {};
 
     Object.entries(probs).forEach(([cls, prob]) => {
       const isWinner = cls === data.prediction;

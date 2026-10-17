@@ -4,7 +4,7 @@ version = "0.1.0"
 description = "Dry Bean Variety Classification using Multiclass Logistic Regression"
 readme = "README.md"
 authors = [
-    { name = "deringirish", email = "girishderin@gmail.com" }
+    { name = "Derin Girish", email = "girishderin@gmail.com" }
 ]
 requires-python = ">=3.14.7"
 dependencies = [

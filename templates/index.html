@@ -3,244 +3,117 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Dry Bean Variety Classifier | Multiclass Logistic Regression</title>
+  <title>Dry Bean Classifier</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
 </head>
 <body>
 
-  <!-- Top Navigation Header -->
-  <header class="header">
-    <div class="header-container">
+  <!-- Top Navbar -->
+  <header class="navbar">
+    <div class="nav-container">
       <div class="brand">
-        <span class="brand-icon">🌱</span>
-        <div class="brand-text">
-          <h1>Dry Bean Variety Classifier</h1>
-          <p class="subtitle">Multiclass Logistic Regression • Computer Vision Morphological Analysis</p>
-        </div>
+        <span class="brand-badge">ML</span>
+        <span class="brand-title">Dry Bean Variety Classifier</span>
       </div>
-      <div class="header-badges">
-        <span class="badge badge-accent">Accuracy: 91.92%</span>
-        <span class="badge badge-muted">Macro ROC-AUC: 0.995</span>
+      <div class="nav-stats">
+        <span>Accuracy: 91.9%</span>
+        <span>•</span>
+        <span>7 Cultivars</span>
       </div>
     </div>
   </header>
 
   <!-- Main Container -->
-  <main class="main-container">
+  <main class="page-container">
 
-    <!-- Hero / Overview Banner -->
-    <section class="intro-card">
-      <div class="intro-content">
-        <h2>Automated Seed Variety Sorting & Classification</h2>
-        <p>
-          Dry beans (<em>Phaseolus vulgaris L.</em>) comprise distinct commercial cultivars whose economic value, culinary qualities, and canning properties vary significantly. Enter the 16 camera-derived morphological dimensions or select an authentic sample preset below to classify the grain variety in real-time.
-        </p>
-      </div>
-    </section>
-
-    <!-- Presets Bar -->
-    <section class="presets-section">
-      <div class="presets-header">
-        <span class="section-tag">Quick-Fill Presets</span>
-        <h3>Load a Real Bean Sample from Dataset</h3>
-      </div>
-      <div class="preset-buttons">
+    <!-- Sample Presets Toolbar -->
+    <div class="presets-toolbar">
+      <span class="toolbar-label">Sample Presets:</span>
+      <div class="presets-group">
         {% for key, preset in presets.items() %}
-          <button type="button" class="preset-btn" data-preset="{{ key }}">
-            <span class="preset-icon">🫘</span>
-            <div class="preset-label-group">
-              <span class="preset-title">{{ preset.label }}</span>
-              <span class="preset-hint">Area: {{ preset.features.Area | int }} px</span>
-            </div>
+          <button type="button" class="preset-pill" data-preset="{{ key }}">
+            {{ preset.label }}
           </button>
         {% endfor %}
       </div>
-    </section>
+    </div>
 
-    <!-- Main Form & Prediction Grid -->
-    <div class="grid-layout">
+    <!-- Main Content: Inputs & Results -->
+    <div class="content-split">
 
-      <!-- Left Column: Input Features -->
-      <section class="card form-card">
-        <div class="card-header">
-          <h3>Input Morphological Measurements (16 Features)</h3>
-          <button type="button" id="reset-btn" class="btn-secondary-sm">Clear Form</button>
+      <!-- Form Section -->
+      <section class="panel form-panel">
+        <div class="panel-header">
+          <h2>Bean Measurements</h2>
+          <button type="button" id="reset-btn" class="text-btn">Reset</button>
         </div>
 
         <form id="prediction-form" autocomplete="off">
-          
-          <div class="form-group-section">
-            <h4 class="group-title">Primary Dimensional Measurements</h4>
-            <div class="input-grid">
-              <div class="input-field">
-                <label for="Area">Area (A) <span class="unit">pixels</span></label>
-                <input type="number" step="any" id="Area" name="Area" placeholder="e.g. 28395" required>
-                <span class="field-hint">Total pixels within grain boundary</span>
+          <div class="form-grid">
+            {% for feat in feature_names %}
+              <div class="field">
+                <label for="{{ feat }}">{{ feat }}</label>
+                <input type="number" step="any" id="{{ feat }}" name="{{ feat }}" required>
               </div>
-              <div class="input-field">
-                <label for="Perimeter">Perimeter (P) <span class="unit">pixels</span></label>
-                <input type="number" step="any" id="Perimeter" name="Perimeter" placeholder="e.g. 610.29" required>
-                <span class="field-hint">Circumference margin length</span>
-              </div>
-              <div class="input-field">
-                <label for="MajorAxisLength">Major Axis Length (L) <span class="unit">px</span></label>
-                <input type="number" step="any" id="MajorAxisLength" name="MajorAxisLength" placeholder="e.g. 208.18" required>
-                <span class="field-hint">Longest line through grain</span>
-              </div>
-              <div class="input-field">
-                <label for="MinorAxisLength">Minor Axis Length (l) <span class="unit">px</span></label>
-                <input type="number" step="any" id="MinorAxisLength" name="MinorAxisLength" placeholder="e.g. 173.89" required>
-                <span class="field-hint">Line perpendicular to major axis</span>
-              </div>
-            </div>
+            {% endfor %}
           </div>
 
-          <div class="form-group-section">
-            <h4 class="group-title">Bounding & Geometric Ratios</h4>
-            <div class="input-grid">
-              <div class="input-field">
-                <label for="AspectRation">Aspect Ratio (K) <span class="unit">L / l</span></label>
-                <input type="number" step="any" id="AspectRation" name="AspectRation" placeholder="e.g. 1.197" required>
-                <span class="field-hint">Major / Minor axis ratio</span>
-              </div>
-              <div class="input-field">
-                <label for="Eccentricity">Eccentricity (e)</label>
-                <input type="number" step="any" id="Eccentricity" name="Eccentricity" placeholder="e.g. 0.549" required>
-                <span class="field-hint">Ellipse elongation (0 = circle)</span>
-              </div>
-              <div class="input-field">
-                <label for="ConvexArea">Convex Area (C) <span class="unit">pixels</span></label>
-                <input type="number" step="any" id="ConvexArea" name="ConvexArea" placeholder="e.g. 28715" required>
-                <span class="field-hint">Enclosing convex polygon area</span>
-              </div>
-              <div class="input-field">
-                <label for="EquivDiameter">Equiv. Diameter (d) <span class="unit">px</span></label>
-                <input type="number" step="any" id="EquivDiameter" name="EquivDiameter" placeholder="e.g. 190.14" required>
-                <span class="field-hint">Diameter of circle with equal area</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group-section">
-            <h4 class="group-title">Shape Form & Boundary Factors</h4>
-            <div class="input-grid">
-              <div class="input-field">
-                <label for="Extent">Extent (Ex)</label>
-                <input type="number" step="any" id="Extent" name="Extent" placeholder="e.g. 0.763" required>
-                <span class="field-hint">Area / Bounding Box Area</span>
-              </div>
-              <div class="input-field">
-                <label for="Solidity">Solidity (S)</label>
-                <input type="number" step="any" id="Solidity" name="Solidity" placeholder="e.g. 0.988" required>
-                <span class="field-hint">Area / Convex Area ratio</span>
-              </div>
-              <div class="input-field">
-                <label for="roundness">Roundness (R)</label>
-                <input type="number" step="any" id="roundness" name="roundness" placeholder="e.g. 0.958" required>
-                <span class="field-hint">(4π · A) / P² circularity index</span>
-              </div>
-              <div class="input-field">
-                <label for="Compactness">Compactness (CO)</label>
-                <input type="number" step="any" id="Compactness" name="Compactness" placeholder="e.g. 0.913" required>
-                <span class="field-hint">Equiv. Diameter / Major Axis</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-group-section">
-            <h4 class="group-title">Invariant Affine Shape Descriptors</h4>
-            <div class="input-grid">
-              <div class="input-field">
-                <label for="ShapeFactor1">ShapeFactor1</label>
-                <input type="number" step="any" id="ShapeFactor1" name="ShapeFactor1" placeholder="e.g. 0.0073" required>
-                <span class="field-hint">Major Axis / Area</span>
-              </div>
-              <div class="input-field">
-                <label for="ShapeFactor2">ShapeFactor2</label>
-                <input type="number" step="any" id="ShapeFactor2" name="ShapeFactor2" placeholder="e.g. 0.0031" required>
-                <span class="field-hint">Minor Axis / Area</span>
-              </div>
-              <div class="input-field">
-                <label for="ShapeFactor3">ShapeFactor3</label>
-                <input type="number" step="any" id="ShapeFactor3" name="ShapeFactor3" placeholder="e.g. 0.8342" required>
-                <span class="field-hint">Area / Equivalent ellipse area</span>
-              </div>
-              <div class="input-field">
-                <label for="ShapeFactor4">ShapeFactor4</label>
-                <input type="number" step="any" id="ShapeFactor4" name="ShapeFactor4" placeholder="e.g. 0.9987" required>
-                <span class="field-hint">Convex boundary ratio</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="form-actions">
-            <button type="submit" id="submit-btn" class="btn-primary">
-              <span class="btn-text">Predict Bean Variety</span>
+          <div class="form-footer">
+            <button type="submit" id="submit-btn" class="primary-btn">
+              <span class="btn-text">Classify Bean</span>
               <span class="spinner hidden" id="spinner"></span>
             </button>
           </div>
         </form>
       </section>
 
-      <!-- Right Column: Prediction Output Card -->
-      <aside class="card results-card" id="results-card">
-        
-        <!-- Default Empty State -->
-        <div class="empty-state" id="empty-state">
-          <div class="empty-icon">🌱</div>
-          <h3>Awaiting Input Measurements</h3>
-          <p>Fill in the 16 morphological parameters or click a preset above to run the Softmax classification pipeline.</p>
+      <!-- Results Section -->
+      <aside class="panel result-panel">
+        <div class="panel-header">
+          <h2>Prediction Result</h2>
         </div>
 
-        <!-- Active Prediction State -->
-        <div class="prediction-content hidden" id="prediction-content">
-          <div class="prediction-header">
-            <span class="result-badge" id="result-badge">Predicted Cultivar</span>
-            <h2 class="result-title" id="predicted-class">—</h2>
-            <p class="result-desc" id="cultivar-description">—</p>
+        <!-- Initial Placeholder State -->
+        <div class="state-empty" id="empty-state">
+          <p class="placeholder-text">Click a sample preset above or fill in the measurements to view predicted cultivar and class probabilities.</p>
+        </div>
+
+        <!-- Populated Prediction State -->
+        <div class="state-active hidden" id="prediction-content">
+          <div class="result-highlight">
+            <span class="result-label" id="result-badge">Predicted Variety</span>
+            <div class="result-name" id="predicted-class">—</div>
+            <p class="result-description" id="cultivar-description">—</p>
           </div>
 
-          <!-- Confidence Meter -->
-          <div class="confidence-container">
-            <div class="confidence-header">
-              <span class="confidence-label">Prediction Confidence</span>
-              <span class="confidence-val" id="confidence-val">0.0%</span>
-            </div>
-            <div class="meter-bar">
-              <div class="meter-fill" id="meter-fill" style="width: 0%"></div>
-            </div>
+          <div class="metric-row">
+            <span class="metric-label">Confidence</span>
+            <span class="metric-value" id="confidence-val">0.0%</span>
+          </div>
+          <div class="progress-track">
+            <div class="progress-fill" id="meter-fill" style="width: 0%"></div>
           </div>
 
-          <!-- Class Probabilities Breakdown -->
-          <div class="probabilities-section">
-            <h4 class="prob-title">Multiclass Probability Distribution</h4>
-            <div class="prob-list" id="prob-list">
-              <!-- Dynamically populated via JS -->
+          <div class="distribution-section">
+            <h3 class="distribution-title">Class Probabilities</h3>
+            <div class="distribution-list" id="prob-list">
+              <!-- Rendered via JS -->
             </div>
-          </div>
-
-          <!-- Model Metadata Footnote -->
-          <div class="metadata-footnote">
-            <span>Model: Multinomial Logistic Regression</span>
-            <span>Preprocessing: StandardScaler Pipeline</span>
           </div>
         </div>
 
-        <!-- Error Alert -->
-        <div class="error-alert hidden" id="error-alert">
-          <span class="error-icon">⚠️</span>
-          <span class="error-text" id="error-text">An error occurred during prediction.</span>
+        <!-- Error State -->
+        <div class="state-error hidden" id="error-alert">
+          <span id="error-text">An error occurred.</span>
         </div>
       </aside>
 
     </div>
-
   </main>
 
-  <!-- Pass preset JSON safely to JS -->
   <script>
     window.PRESETS_DATA = {{ presets | tojson | safe }};
   </script>
