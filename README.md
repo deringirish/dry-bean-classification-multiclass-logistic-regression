@@ -1,5 +1,6 @@
 # Dry Bean Variety Classification Using Multiclass Logistic Regression
 
+[![CI](https://github.com/deringirish/dry-bean-logistic-regression/actions/workflows/ci.yml/badge.svg)](https://github.com/deringirish/dry-bean-logistic-regression/actions/workflows/ci.yml)
 [![Python 3.14](https://img.shields.io/badge/Python-3.14-3776AB.svg?style=flat&logo=python&logoColor=white)](https://www.python.org/)
 [![scikit-learn](https://img.shields.io/badge/scikit--learn-v1.9+-F7931E.svg?style=flat&logo=scikit-learn&logoColor=white)](https://scikit-learn.org/)
 [![Flask](https://img.shields.io/badge/Flask-3.1+-000000.svg?style=flat&logo=flask&logoColor=white)](https://flask.palletsprojects.com/)
