@@ -111,7 +111,10 @@ Open your browser at `http://localhost:5000` to interact with the classifier.
 ## Project Structure
 
 ```text
-dry-bean-logistic-regression/
+dry-bean-classification-multiclass-logistic-regression/
+├── .github/
+│   └── workflows/
+│       └── ci.yml                                    # GitHub Actions CI automated pipeline
 ├── assets/                                           # High-resolution evaluation plots
 │   ├── confusion_matrix.png
 │   └── roc_curves.png
@@ -128,6 +131,9 @@ dry-bean-logistic-regression/
 │       └── main.js
 ├── templates/                                        # Flask web templates
 │   └── index.html
+├── tests/                                            # Automated test suite (pytest)
+│   ├── test_app.py
+│   └── test_model.py
 ├── app.py                                            # Flask web server
 ├── pyproject.toml                                    # Project dependencies and configuration
 ├── uv.lock                                           # Pinned dependency lockfile
