@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('prediction-form');
   const submitBtn = document.getElementById('submit-btn');
   const spinner = document.getElementById('spinner');
-  const btnText = submitBtn.querySelector('.btn-text');
+  const btnText = submitBtn ? submitBtn.querySelector('.btn-text') : null;
   const resetBtn = document.getElementById('reset-btn');
 
   const emptyState = document.getElementById('empty-state');
@@ -21,7 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Handle Preset Click
   presetButtons.forEach((btn) => {
-    btn.addEventListener('click', () => {
+    btn.addEventListener('click', (e) => {
+      e.preventDefault();
       const presetKey = btn.getAttribute('data-preset');
       const presets = window.PRESETS_DATA || {};
       const preset = presets[presetKey];
@@ -40,7 +41,7 @@ document.addEventListener('DOMContentLoaded', () => {
       });
 
       // Highlight active pill button
-      presetButtons.forEach(b => {
+      presetButtons.forEach((b) => {
         b.style.borderColor = 'var(--border, #e2e8f0)';
         b.style.background = 'var(--bg-page, #f8fafc)';
         b.style.color = 'var(--text-secondary, #475569)';
@@ -49,27 +50,37 @@ document.addEventListener('DOMContentLoaded', () => {
       btn.style.background = 'var(--primary-subtle, #f0fdf4)';
       btn.style.color = 'var(--primary-dark, #059669)';
 
-      // Trigger form submission
-      form.dispatchEvent(new Event('submit', { cancelable: true }));
+      // Trigger classification
+      executePrediction();
     });
   });
 
   // Handle Form Reset
-  resetBtn.addEventListener('click', () => {
-    form.reset();
-    emptyState.classList.remove('hidden');
-    predictionContent.classList.add('hidden');
-    errorAlert.classList.add('hidden');
-    presetButtons.forEach(b => {
-      b.style.borderColor = 'var(--border, #e2e8f0)';
-      b.style.background = 'var(--bg-page, #f8fafc)';
-      b.style.color = 'var(--text-secondary, #475569)';
+  if (resetBtn) {
+    resetBtn.addEventListener('click', () => {
+      if (form) form.reset();
+      if (emptyState) emptyState.classList.remove('hidden');
+      if (predictionContent) predictionContent.classList.add('hidden');
+      if (errorAlert) errorAlert.classList.add('hidden');
+      presetButtons.forEach((b) => {
+        b.style.borderColor = 'var(--border, #e2e8f0)';
+        b.style.background = 'var(--bg-page, #f8fafc)';
+        b.style.color = 'var(--text-secondary, #475569)';
+      });
     });
-  });
+  }
 
-  // Handle Form Submission via Fetch
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+  // Handle Manual Form Submission
+  if (form) {
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      executePrediction();
+    });
+  }
+
+  // Core Prediction Function
+  async function executePrediction() {
+    if (!form) return;
 
     // Collect 16 feature values
     const formData = new FormData(form);
@@ -78,9 +89,8 @@ document.addEventListener('DOMContentLoaded', () => {
       payload[key] = parseFloat(value);
     }
 
-    // Set Loading State
     setLoading(true);
-    errorAlert.classList.add('hidden');
+    if (errorAlert) errorAlert.classList.add('hidden');
 
     try {
       const response = await fetch('/predict', {
@@ -97,7 +107,6 @@ document.addEventListener('DOMContentLoaded', () => {
         throw new Error(data.message || 'Server returned an error.');
       }
 
-      // Render Results
       renderResults(data);
 
     } catch (err) {
@@ -106,7 +115,7 @@ document.addEventListener('DOMContentLoaded', () => {
     } finally {
       setLoading(false);
     }
-  });
+  }
 
   function renderResults(data) {
     if (emptyState) emptyState.classList.add('hidden');
@@ -119,14 +128,13 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     if (resultBadge) {
       resultBadge.textContent = `Cultivar: ${data.display_name || data.prediction}`;
-      resultBadge.style.background = '#ecfdf5';
       resultBadge.style.color = data.badge_color || '#059669';
     }
     if (cultivarDescription) {
       cultivarDescription.textContent = data.description || '';
     }
 
-    // Confidence
+    // Confidence meter
     const conf = parseFloat(data.confidence) || 0;
     if (confidenceVal) {
       confidenceVal.textContent = `${conf.toFixed(1)}%`;
@@ -140,45 +148,47 @@ document.addEventListener('DOMContentLoaded', () => {
       probList.innerHTML = '';
       const probs = data.probabilities || {};
 
-    Object.entries(probs).forEach(([cls, prob]) => {
-      const isWinner = cls === data.prediction;
-      const item = document.createElement('div');
-      item.className = `prob-item ${isWinner ? 'winner' : ''}`;
+      Object.entries(probs).forEach(([cls, prob]) => {
+        const isWinner = cls === data.prediction;
+        const item = document.createElement('div');
+        item.className = `prob-item ${isWinner ? 'winner' : ''}`;
 
-      item.innerHTML = `
-        <div class="prob-label-row">
-          <span class="prob-name">${cls}</span>
-          <span class="prob-pct">${prob.toFixed(1)}%</span>
-        </div>
-        <div class="prob-bar-bg">
-          <div class="prob-bar-fill" style="width: ${Math.min(prob, 100)}%"></div>
-        </div>
-      `;
-      probList.appendChild(item);
-    });
+        item.innerHTML = `
+          <div class="prob-label-row">
+            <span class="prob-name">${cls}</span>
+            <span class="prob-pct">${prob.toFixed(1)}%</span>
+          </div>
+          <div class="prob-bar-bg">
+            <div class="prob-bar-fill" style="width: ${Math.min(prob, 100)}%"></div>
+          </div>
+        `;
+        probList.appendChild(item);
+      });
+    }
 
-    // Smooth scroll into results view on mobile
-    if (window.innerWidth < 960) {
+    // Smooth scroll into view on small screens
+    if (window.innerWidth < 860 && predictionContent) {
       predictionContent.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
   }
 
   function showError(msg) {
-    errorText.textContent = msg;
-    errorAlert.classList.remove('hidden');
-    predictionContent.classList.add('hidden');
-    emptyState.classList.remove('hidden');
+    if (errorText) errorText.textContent = msg;
+    if (errorAlert) errorAlert.classList.remove('hidden');
+    if (predictionContent) predictionContent.classList.add('hidden');
+    if (emptyState) emptyState.classList.remove('hidden');
   }
 
   function setLoading(isLoading) {
+    if (!submitBtn) return;
     if (isLoading) {
       submitBtn.disabled = true;
-      spinner.classList.remove('hidden');
-      btnText.textContent = 'Analyzing Morphology...';
+      if (spinner) spinner.classList.remove('hidden');
+      if (btnText) btnText.textContent = 'Classifying...';
     } else {
       submitBtn.disabled = false;
-      spinner.classList.add('hidden');
-      btnText.textContent = 'Predict Bean Variety';
+      if (spinner) spinner.classList.add('hidden');
+      if (btnText) btnText.textContent = 'Classify Bean';
     }
   }
 });
